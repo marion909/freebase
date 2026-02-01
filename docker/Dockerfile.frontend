@@ -10,7 +10,7 @@ WORKDIR /app
 # ============ Dependencies Stage ============
 FROM base AS dependencies
 COPY . .
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --no-optional
 
 # ============ Development Stage ============
 FROM dependencies AS development
