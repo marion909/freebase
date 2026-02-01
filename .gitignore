@@ -1,0 +1,67 @@
+# Dependencies
+node_modules
+pnpm-lock.yaml
+npm-lock.json
+yarn.lock
+
+# Build outputs
+dist
+.next
+out
+build
+
+# Environment variables
+.env
+.env.local
+.env.production.local
+.env.development.local
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing
+coverage
+.nyc_output
+*.lcov
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Docker volumes
+postgres-core_data
+project_*_data
+*/docker/traefik/acme.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp
+tmp
+temp
+.cache
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Turbo
+.turbo

@@ -1,0 +1,47 @@
+# Traefik Static Configuration (YAML)
+# Dynamic configs loaded from ./dynamic/ directory
+
+# API and Dashboard
+api:
+  dashboard: true
+  debug: true
+
+# Entry Points
+entryPoints:
+  web:
+    address: ':80'
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+          permanent: true
+  websecure:
+    address: ':443'
+
+# Docker Provider
+providers:
+  docker:
+    endpoint: unix:///var/run/docker.sock
+    exposedByDefault: false
+    network: freebase-core
+  file:
+    directory: /etc/traefik/dynamic
+    watch: true
+
+# Certificate Resolvers
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: ${ACME_EMAIL:-noreply@Neuhauser.network}
+      storage: /letsencrypt/acme.json
+      httpChallenge:
+        entryPoint: web
+
+# Logging
+log:
+  level: DEBUG
+
+accessLog:
+  format: json
+  filePath: /var/log/traefik/access.log

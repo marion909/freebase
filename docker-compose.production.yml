@@ -1,0 +1,147 @@
+# Production Docker Compose Configuration
+# Use: docker-compose -f docker-compose.production.yml up -d
+
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres-core:/var/lib/postgresql/data
+    networks:
+      - freebase-core
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  traefik:
+    image: traefik:v3.0
+    command:
+      - '--api.dashboard=false'
+      - '--providers.docker=true'
+      - '--providers.docker.exposedbydefault=false'
+      - '--entrypoints.web.address=:80'
+      - '--entrypoints.websecure.address=:443'
+      - '--certificatesResolvers.letsencrypt.acme.httpChallenge=true'
+      - '--certificatesResolvers.letsencrypt.acme.httpChallenge.entryPoint=web'
+      - '--certificatesResolvers.letsencrypt.acme.email=${ACME_EMAIL}'
+      - '--certificatesResolvers.letsencrypt.acme.storage=/letsencrypt/acme.json'
+      - '--log.level=WARN'
+      - '--accessLog=true'
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./docker/traefik/traefik.yml:/traefik.yml:ro
+      - ./docker/traefik/dynamic:/etc/traefik/dynamic:ro
+      - traefik-certs:/letsencrypt
+    networks:
+      - freebase-core
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+
+  backend:
+    image: ghcr.io/yourusername/freebase/backend:latest
+    environment:
+      NODE_ENV: production
+      LOG_LEVEL: WARN
+      JWT_SECRET: ${JWT_SECRET}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      DOCKER_HOST: ${DOCKER_HOST}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      SMTP_FROM_NAME: ${SMTP_FROM_NAME}
+      ROOT_DOMAIN: ${ROOT_DOMAIN}
+      FRONTEND_URL: https://${ROOT_DOMAIN}
+      API_URL: https://api.${ROOT_DOMAIN}
+      API_PREFIX: /api/v1
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.backend.rule=Host(`api.${ROOT_DOMAIN}`) || (Host(`${ROOT_DOMAIN}`) && PathPrefix(`/api`))'
+      - 'traefik.http.routers.backend.entrypoints=web,websecure'
+      - 'traefik.http.routers.backend.tls.certresolver=letsencrypt'
+      - 'traefik.http.services.backend.loadbalancer.server.port=3001'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - backend-logs:/var/log/freebase
+    networks:
+      - freebase-core
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3001/health']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  frontend:
+    image: ghcr.io/yourusername/freebase/frontend:latest
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: https://api.${ROOT_DOMAIN}
+      NEXT_PUBLIC_ROOT_DOMAIN: ${ROOT_DOMAIN}
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.frontend.rule=Host(`${ROOT_DOMAIN}`) && !PathPrefix(`/api`)'
+      - 'traefik.http.routers.frontend.entrypoints=web,websecure'
+      - 'traefik.http.routers.frontend.tls.certresolver=letsencrypt'
+      - 'traefik.http.services.frontend.loadbalancer.server.port=3000'
+    networks:
+      - freebase-core
+    restart: unless-stopped
+    depends_on:
+      - backend
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+networks:
+  freebase-core:
+    driver: bridge
+
+volumes:
+  postgres-core:
+  traefik-certs:
+  backend-logs:

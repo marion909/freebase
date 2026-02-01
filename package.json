@@ -1,0 +1,27 @@
+{
+  "name": "freebase",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Supabase-like self-hosted platform on Debian/Hetzner",
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "test:watch": "turbo run test:watch",
+    "lint": "turbo run lint",
+    "lint:fix": "turbo run lint:fix",
+    "type-check": "turbo run type-check",
+    "db:migrate": "turbo run db:migrate",
+    "db:seed": "turbo run db:seed",
+    "clean": "turbo run clean && rm -rf node_modules"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "turbo": "^2.0.0"
+  },
+  "packageManager": "pnpm@9.1.1",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  }
+}

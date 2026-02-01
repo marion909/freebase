@@ -1,0 +1,36 @@
+# Development overrides for docker-compose.yml
+# Run with: docker-compose -f docker-compose.yml -f docker-compose.override.yml up
+
+version: '3.9'
+
+services:
+  backend:
+    # Enable hot-reload in development
+    volumes:
+      - ./apps/backend/src:/app/src
+      - ./apps/backend/test:/app/test
+      - /var/run/docker.sock:/var/run/docker.sock
+      - backend-node-modules:/app/node_modules
+    command: npm run start:dev
+    environment:
+      NODE_ENV: development
+      ENABLE_DEBUG: 'true'
+      ENABLE_SWAGGER: 'true'
+
+  frontend:
+    # Enable hot-reload (Fast Refresh) in development
+    volumes:
+      - ./apps/frontend/app:/app/app
+      - ./apps/frontend/components:/app/components
+      - ./apps/frontend/lib:/app/lib
+      - ./apps/frontend/hooks:/app/hooks
+      - ./apps/frontend/styles:/app/styles
+      - ./apps/frontend/public:/app/public
+      - frontend-node-modules:/app/node_modules
+    command: npm run dev
+    environment:
+      NODE_ENV: development
+
+volumes:
+  backend-node-modules:
+  frontend-node-modules:

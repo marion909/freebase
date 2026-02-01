@@ -1,0 +1,22 @@
+{
+  "name": "@freebase/shared",
+  "version": "1.0.0",
+  "description": "Shared utilities and validators for Freebase",
+  "private": true,
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./validators": "./src/validators/index.ts",
+    "./constants": "./src/constants/index.ts",
+    "./utils": "./src/utils/index.ts"
+  },
+  "scripts": {
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "typescript": "^5.2.2"
+  }
+}

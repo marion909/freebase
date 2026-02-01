@@ -1,0 +1,51 @@
+# Traefik Dynamic Configuration
+# This file is loaded automatically and can be modified for local development
+
+http:
+  # Middlewares
+  middlewares:
+    cors:
+      headers:
+        accessControlAllowOriginList:
+          - 'http://localhost:3000'
+          - 'http://localhost'
+        accessControlAllowMethods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - PATCH
+          - OPTIONS
+        accessControlAllowHeaders:
+          - '*'
+        accessControlExposeHeaders:
+          - '*'
+        accessControlMaxAge: 3600
+
+  # Routers for local development
+  routers:
+    backend-local:
+      rule: 'Host(`localhost`) && PathPrefix(`/api`)'
+      service: backend
+      entryPoints:
+        - web
+      middlewares:
+        - cors
+
+    frontend-local:
+      rule: 'Host(`localhost`)'
+      service: frontend
+      entryPoints:
+        - web
+
+  # Services
+  services:
+    backend:
+      loadBalancer:
+        servers:
+          - url: 'http://backend:3001'
+
+    frontend:
+      loadBalancer:
+        servers:
+          - url: 'http://frontend:3000'

@@ -1,0 +1,137 @@
+version: '3.9'
+
+services:
+  # Core PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: freebase-postgres
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - postgres-core:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - freebase-core
+    restart: unless-stopped
+
+  # Reverse Proxy (Traefik)
+  traefik:
+    image: traefik:v3.0
+    container_name: freebase-traefik
+    command:
+      - '--api.insecure=true'
+      - '--api.dashboard=true'
+      - '--providers.docker=true'
+      - '--providers.docker.exposedbydefault=false'
+      - '--entrypoints.web.address=:80'
+      - '--entrypoints.websecure.address=:443'
+      - '--log.level=DEBUG'
+    ports:
+      - '80:80'
+      - '443:443'
+      - '8080:8080'  # Dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./docker/traefik/traefik.yml:/traefik.yml:ro
+      - ./docker/traefik/dynamic:/etc/traefik/dynamic:ro
+      - traefik-certs:/letsencrypt
+    networks:
+      - freebase-core
+    restart: unless-stopped
+    depends_on:
+      - postgres
+
+  # Backend (Nest.js)
+  backend:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.backend
+      target: development
+    container_name: freebase-backend
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      JWT_SECRET: ${JWT_SECRET}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      DOCKER_HOST: ${DOCKER_HOST}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      SMTP_FROM_NAME: ${SMTP_FROM_NAME}
+      ROOT_DOMAIN: ${ROOT_DOMAIN}
+      FRONTEND_URL: ${FRONTEND_URL}
+      API_URL: ${API_URL}
+      API_PREFIX: ${API_PREFIX}
+    ports:
+      - '3001:3001'
+    volumes:
+      - ./apps/backend/src:/app/src
+      - ./apps/backend/test:/app/test
+      - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.backend.rule=Host(`localhost`) && PathPrefix(`/api`)'
+      - 'traefik.http.services.backend.loadbalancer.server.port=3001'
+    networks:
+      - freebase-core
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3001/health']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Frontend (Next.js)
+  frontend:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.frontend
+      target: development
+    container_name: freebase-frontend
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      NEXT_PUBLIC_API_URL: ${API_URL}
+      NEXT_PUBLIC_ROOT_DOMAIN: ${ROOT_DOMAIN}
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./apps/frontend/app:/app/app
+      - ./apps/frontend/components:/app/components
+      - ./apps/frontend/lib:/app/lib
+      - ./apps/frontend/hooks:/app/hooks
+      - ./apps/frontend/styles:/app/styles
+      - ./apps/frontend/public:/app/public
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.frontend.rule=Host(`localhost`) && !PathPrefix(`/api`)'
+      - 'traefik.http.services.frontend.loadbalancer.server.port=3000'
+    networks:
+      - freebase-core
+    restart: unless-stopped
+    depends_on:
+      - backend
+
+networks:
+  freebase-core:
+    driver: bridge
+
+volumes:
+  postgres-core:
+  traefik-certs:
