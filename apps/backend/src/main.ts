@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, RequestMethod } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { AppLoggerService } from './common/logger.service';
@@ -25,7 +25,9 @@ async function bootstrap() {
   );
 
   // API prefix
-  app.setGlobalPrefix(process.env.API_PREFIX || 'api/v1');
+  app.setGlobalPrefix(process.env.API_PREFIX || 'api/v1', {
+    exclude: [{ path: 'health', method: RequestMethod.GET }],
+  });
 
   // Swagger documentation
   if (process.env.ENABLE_SWAGGER === 'true') {

@@ -57,6 +57,8 @@ fi
 # Create necessary directories
 echo "📁 Creating directories..."
 mkdir -p /opt/freebase
+mkdir -p /opt/freebase/docker/traefik
+mkdir -p /opt/freebase/docker/traefik/dynamic
 mkdir -p /var/log/freebase
 mkdir -p /var/lib/freebase-backups
 
@@ -72,7 +74,7 @@ echo "📝 Setting up log rotation..."
 cat > /etc/logrotate.d/freebase << EOF
 /var/log/freebase/*.log {
   daily
-  rotate 14
+  rotate 7
   compress
   delaycompress
   notifempty
@@ -101,6 +103,8 @@ if [ ! -f /opt/freebase/.env.production ]; then
 # Production Environment
 NODE_ENV=production
 LOG_LEVEL=WARN
+LOG_DIR=/var/log/freebase
+LOG_ALERT_RECIPIENTS=admin@example.com,alerts@example.com
 
 # JWT & Authentication
 JWT_SECRET=CHANGE_ME_GENERATE_WITH_openssl_rand_-base64_32

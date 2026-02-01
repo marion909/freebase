@@ -222,6 +222,8 @@ Freebase is a multi-tenant platform that allows users to create isolated project
 - User actions logged (login, project creation, domain changes)
 - Error logs include context (user_id, project_id, timestamp)
 - Logs stored in `query_logs` and Winston logs
+- Health endpoint at `/health` for container checks
+- Daily log rotation with 7-day retention in production
 
 ### Backups & Recovery
 - Daily automated backups to Hetzner (off-site)

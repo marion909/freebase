@@ -9,6 +9,12 @@ http://localhost:3001/api/v1          # Development
 https://api.Neuhauser.network/api/v1    # Production
 ```
 
+**Health Check (no prefix):**
+```
+http://localhost:3001/health
+https://api.Neuhauser.network/health
+```
+
 ## Authentication
 
 All protected endpoints require a Bearer token in the Authorization header:
@@ -45,6 +51,23 @@ All responses are JSON with consistent structure:
 ```
 
 ## Endpoints
+
+### Health
+
+#### Health Check
+```
+GET /health
+```
+
+Simple health check endpoint.
+
+**Response:** 200 OK
+```json
+{
+  "status": "ok",
+  "timestamp": "2026-02-01T10:30:00Z"
+}
+```
 
 ### Authentication
 
@@ -257,6 +280,95 @@ Create a new project (auto-provisions Docker container).
 **Errors:**
 - 400: Slug must be 3-63 characters
 - 409: Slug already exists
+
+---
+
+#### Delete Project (Hard Delete)
+```
+DELETE /projects/{id}
+```
+
+Deletes the project, removes Docker container and network, and drops the project DB.
+
+**Response:** 204 No Content
+
+**Errors:**
+- 404: Project not found
+
+---
+
+### Domains
+
+#### List Domains
+```
+GET /projects/{projectId}/domains
+```
+
+**Response:** 200 OK
+
+---
+
+#### Create Domain
+```
+POST /projects/{projectId}/domains
+```
+
+**Request:**
+```json
+{
+  "domain": "myapp.com",
+  "isCustom": true
+}
+```
+
+**Response:** 201 Created
+
+---
+
+#### Get Domain
+```
+GET /projects/{projectId}/domains/{domain}
+```
+
+**Response:** 200 OK
+
+---
+
+#### Verify Domain
+```
+POST /projects/{projectId}/domains/{domain}/verify
+```
+
+**Response:** 200 OK
+
+---
+
+#### Delete Domain
+```
+DELETE /projects/{projectId}/domains/{domain}
+```
+
+**Response:** 204 No Content
+
+---
+
+### Monitoring
+
+#### Get Project Usage
+```
+GET /projects/{projectId}/usage
+```
+
+**Response:** 200 OK
+
+---
+
+#### Trigger Storage Monitoring (Admin)
+```
+POST /projects/monitoring/trigger
+```
+
+**Response:** 200 OK
 
 ---
 

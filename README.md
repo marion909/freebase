@@ -49,6 +49,7 @@ pnpm dev
 Access the application:
 - **Frontend**: http://localhost:3000
 - **Backend API**: http://localhost:3001
+- **Health Check**: http://localhost:3001/health
 - **API Docs**: http://localhost:3001/api
 - **Traefik Dashboard**: http://localhost:8080
 

@@ -6,6 +6,8 @@ version: '3.9'
 services:
   postgres:
     image: postgres:16-alpine
+    env_file:
+      - .env.production
     environment:
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USER}
@@ -19,10 +21,10 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 1G
+          memory: 500M
         reservations:
           cpus: '0.5'
-          memory: 512M
+          memory: 256M
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U ${DB_USER}']
       interval: 10s
@@ -31,6 +33,8 @@ services:
 
   traefik:
     image: traefik:v3.0
+    env_file:
+      - .env.production
     command:
       - '--api.dashboard=false'
       - '--providers.docker=true'
@@ -57,14 +61,21 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
-          memory: 256M
+          cpus: '1'
+          memory: 500M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
 
   backend:
     image: ghcr.io/yourusername/freebase/backend:latest
+    env_file:
+      - .env.production
     environment:
       NODE_ENV: production
       LOG_LEVEL: WARN
+      ENABLE_SWAGGER: 'false'
+      ENABLE_DEBUG: 'false'
       JWT_SECRET: ${JWT_SECRET}
       ENCRYPTION_KEY: ${ENCRYPTION_KEY}
       DB_HOST: postgres
@@ -101,18 +112,20 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 512M
+          memory: 500M
         reservations:
           cpus: '0.5'
           memory: 256M
     healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:3001/health']
+      test: ['CMD', 'node', '-e', "require('http').get('http://localhost:3001/health', (r) => {if (r.statusCode !== 200) process.exit(1)}).on('error', () => process.exit(1))"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   frontend:
     image: ghcr.io/yourusername/freebase/frontend:latest
+    env_file:
+      - .env.production
     environment:
       NODE_ENV: production
       NEXT_PUBLIC_API_URL: https://api.${ROOT_DOMAIN}
@@ -132,10 +145,15 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 512M
+          memory: 500M
         reservations:
           cpus: '0.5'
           memory: 256M
+    healthcheck:
+      test: ['CMD', 'node', '-e', "require('http').get('http://localhost:3000', (r) => {if (r.statusCode !== 200) process.exit(1)}).on('error', () => process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 networks:
   freebase-core:

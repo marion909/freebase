@@ -49,6 +49,8 @@ Add all production configuration:
 # Environment
 NODE_ENV=production
 LOG_LEVEL=WARN
+LOG_DIR=/var/log/freebase
+LOG_ALERT_RECIPIENTS=admin@example.com,alerts@example.com
 
 # JWT & Authentication
 JWT_SECRET=$(openssl rand -base64 32)  # Generate random
@@ -147,7 +149,7 @@ docker-compose -f docker-compose.production.yml logs -f
 curl https://Neuhauser.network
 
 # Test API
-curl https://api.Neuhauser.network/api/v1/health
+curl https://api.Neuhauser.network/health
 
 # Check Traefik dashboard (optional, if enabled)
 curl https://traefik.Neuhauser.network/dashboard
@@ -511,7 +513,7 @@ For issues, check:
 2. **Health Checks**: `docker ps` (should all be "Up")
 3. **DNS**: `dig Neuhauser.network`
 4. **SSL**: `openssl s_client -connect Neuhauser.network:443`
-5. **API**: `curl -v https://api.Neuhauser.network/api/v1/health`
+5. **API**: `curl -v https://api.Neuhauser.network/health`
 
 ---
 

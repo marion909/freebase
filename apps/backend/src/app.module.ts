@@ -7,6 +7,7 @@ import { DatabaseModule } from './database/database.module';
 import { DomainsModule } from './domains/domains.module';
 import { MonitoringModule } from './monitoring/monitoring.module';
 import { AppLoggerService } from './common/logger.service';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { AppLoggerService } from './common/logger.service';
     DatabaseModule,
     DomainsModule,
     MonitoringModule,
+    HealthModule,
   ],
   providers: [AppLoggerService],
 })

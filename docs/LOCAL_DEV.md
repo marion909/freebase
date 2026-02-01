@@ -189,6 +189,26 @@ pnpm test --filter=frontend
 
 ---
 
+## MVP Testing Checklist
+
+Use this checklist to validate core MVP flows before release:
+
+- [ ] User registration, email verification, and login
+- [ ] Project creation provisions Docker container and DB
+- [ ] Standard domain `{slug}.Neuhauser.network` resolves
+- [ ] SQL Editor executes queries with validation
+- [ ] Table Browser lists tables and columns
+- [ ] Data Editor can edit, add, delete rows
+- [ ] CSV/SQL import works end-to-end
+- [ ] Custom domain DNS verification works
+- [ ] Storage usage endpoint returns values
+- [ ] Storage warning banners display correctly
+- [ ] Project deletion removes container, network, and DB
+- [ ] `/health` endpoint returns 200
+- [ ] Logs written and error alerts configured
+
+---
+
 ## Code Quality
 
 ### Linting
