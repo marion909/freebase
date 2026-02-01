@@ -15,11 +15,11 @@ RUN pnpm install --no-optional
 # ============ Development Stage ============
 FROM dependencies AS development
 EXPOSE 3000
-CMD ["npm", "run", "dev", "--filter=frontend"]
+CMD ["pnpm", "--filter", "@freebase/frontend", "dev"]
 
 # ============ Production Build Stage ============
 FROM dependencies AS production-build
-RUN cd apps/frontend && npm run build
+RUN cd apps/frontend && pnpm run build
 
 # ============ Production Runtime Stage ============
 FROM node:20-alpine AS production
