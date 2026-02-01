@@ -1,8 +1,6 @@
 # Production Docker Compose Configuration
 # Use: docker-compose -f docker-compose.production.yml up -d
 
-version: '3.9'
-
 services:
   postgres:
     image: postgres:16-alpine

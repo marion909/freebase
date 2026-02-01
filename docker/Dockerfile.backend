@@ -28,8 +28,12 @@ RUN cd apps/backend && pnpm run build
 FROM base AS production
 ENV NODE_ENV=production
 COPY --from=production-build /app/node_modules ./node_modules
-COPY --from=production-build /app/apps/backend/dist ./dist
-COPY --from=production-build /app/apps/backend/package.json ./
+COPY --from=production-build /app/apps/backend/dist ./apps/backend/dist
+COPY --from=production-build /app/apps/backend/package.json ./apps/backend/
+COPY --from=production-build /app/apps/shared ./apps/shared
+COPY --from=production-build /app/package.json ./
+COPY --from=production-build /app/pnpm-workspace.yaml ./
+WORKDIR /app/apps/backend
 EXPOSE 3001
 HEALTHCHECK --interval=10s --timeout=5s --retries=5 \
   CMD node -e "require('http').get('http://localhost:3001/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
