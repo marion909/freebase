@@ -23,14 +23,6 @@
       "outputs": [],
       "cache": true
     },
-    "test": {
-      "cache": false,
-      "outputs": ["coverage/**"]
-    },
-    "test:watch": {
-      "cache": false,
-      "persistent": true
-    },
     "db:migrate": {
       "cache": false
     },
