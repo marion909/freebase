@@ -9,23 +9,16 @@ WORKDIR /app
 
 # ============ Dependencies Stage ============
 FROM base AS dependencies
-COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
-RUN mkdir -p apps/backend apps/frontend packages/shared packages/types
-COPY apps/backend/package.json ./apps/backend/
-COPY apps/frontend/package.json ./apps/frontend/
-COPY packages/shared/package.json ./packages/shared/
-COPY packages/types/package.json ./packages/types/
+COPY . .
 RUN pnpm install --frozen-lockfile
 
 # ============ Development Stage ============
 FROM dependencies AS development
-COPY . .
 EXPOSE 3000
 CMD ["npm", "run", "dev", "--filter=frontend"]
 
 # ============ Production Build Stage ============
 FROM dependencies AS production-build
-COPY . .
 RUN turbo build --filter=frontend
 
 # ============ Production Runtime Stage ============
