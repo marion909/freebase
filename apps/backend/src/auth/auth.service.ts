@@ -46,7 +46,8 @@ export class AuthService {
     await this.usersRepository.save(user);
 
     // Send verification email
-    await this.emailService.sendVerificationEmail(email, verificationToken);
+    // TODO: Enable when SMTP is configured
+    // await this.emailService.sendVerificationEmail(email, verificationToken);
 
     return {
       message: 'Registration successful. Please check your email to verify your account.',

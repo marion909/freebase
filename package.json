@@ -15,8 +15,8 @@
     "db:seed": "turbo run db:seed",
     "clean": "turbo run clean && rm -rf node_modules"
   },
-  "dependencies": {},
   "devDependencies": {
+    "eslint-config-prettier": "^10.1.8",
     "turbo": "^2.0.0"
   },
   "packageManager": "pnpm@9.1.1",
