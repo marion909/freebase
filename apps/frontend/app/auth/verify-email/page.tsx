@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { authApi } from '../../../lib/api';
 import toast from 'react-hot-toast';
 
+export const dynamic = 'force-dynamic';
+
 export default function VerifyEmailPage() {
   const searchParams = useSearchParams();
   const [isVerifying, setIsVerifying] = useState(true);
