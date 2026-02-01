@@ -7,22 +7,32 @@ import { AuthModule } from './auth/auth.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: process.env.NODE_ENV === 'production' ? '.env.production' : '.env',
+      envFilePath: process.env.NODE_ENV === 'production' ? '../../.env.production' : '../../.env',
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.get('DB_HOST'),
-        port: configService.get<number>('DB_PORT'),
-        username: configService.get('DB_USER'),
-        password: configService.get('DB_PASSWORD'),
-        database: configService.get('DB_NAME'),
-        entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: false, // Use migrations in production
-        logging: configService.get('NODE_ENV') !== 'production',
-      }),
+      useFactory: (configService: ConfigService) => {
+        const password = configService.get<string>('DB_PASSWORD');
+        console.log('DB Config:', {
+          host: configService.get('DB_HOST'),
+          port: configService.get('DB_PORT'),
+          username: configService.get('DB_USER'),
+          password: password ? '***SET***' : 'UNDEFINED',
+          database: configService.get('DB_NAME'),
+        });
+        return {
+          type: 'postgres' as const,
+          host: configService.get<string>('DB_HOST'),
+          port: configService.get<number>('DB_PORT'),
+          username: configService.get<string>('DB_USER'),
+          password,
+          database: configService.get<string>('DB_NAME'),
+          entities: [__dirname + '/**/*.entity{.ts,.js}'],
+          synchronize: false,
+          logging: configService.get('NODE_ENV') !== 'production',
+        };
+      },
     }),
     AuthModule,
   ],

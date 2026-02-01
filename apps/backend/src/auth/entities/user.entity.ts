@@ -14,13 +14,13 @@ export class User {
   @Column({ name: 'email_verified', default: false })
   emailVerified: boolean;
 
-  @Column({ name: 'verification_token', nullable: true })
+  @Column({ name: 'verification_token', nullable: true, type: 'varchar' })
   verificationToken: string | null;
 
   @Column({ name: 'verification_token_expires_at', nullable: true, type: 'timestamp with time zone' })
   verificationTokenExpiresAt: Date | null;
 
-  @Column({ name: 'reset_password_token', nullable: true })
+  @Column({ name: 'reset_password_token', nullable: true, type: 'varchar' })
   resetPasswordToken: string | null;
 
   @Column({ name: 'reset_password_expires_at', nullable: true, type: 'timestamp with time zone' })
