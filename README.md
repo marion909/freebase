@@ -10,6 +10,8 @@ A self-hosted Supabase alternative with multi-tenant architecture, running on De
 - **Domain Management**: Standard domains + DNS-validated custom domains
 - **Storage Limits**: 1GB hard limit per project with automatic backups
 - **Network Isolation**: Each project in its own Docker network
+- **Hard Delete Projects**: Remove container, network, and drop project database
+- **Structured Logging**: JSON logs with daily rotation and error email alerts
 - **Multi-Project API**: Project-level REST API (v1) via custom domains
 
 ## Quick Start (Local Development)
@@ -175,6 +177,8 @@ See [.env.example](./.env.example) for all available configuration options.
 - `ENCRYPTION_KEY` - 32-byte hex key (generate with `openssl rand -hex 32`)
 - `DB_PASSWORD` - Strong database password
 - `SMTP_*` - Email configuration
+- `LOG_ALERT_RECIPIENTS` - Comma-separated alert recipients
+- `LOG_DIR` - Log directory for rotated files
 - `HETZNER_BACKUP_*` - Backup space credentials
 
 ## Contributing

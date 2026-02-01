@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Table, Edit2, Trash2, RefreshCw, Download, Search } from 'lucide-react';
 import { databaseApi, TableMetadata } from '@/lib/databaseApi';
 import toast from 'react-hot-toast';
@@ -19,17 +19,7 @@ export default function DataEditor({ projectId }: DataEditorProps) {
   const [editingRow, setEditingRow] = useState<number | null>(null);
   const [editedValues, setEditedValues] = useState<any>({});
 
-  useEffect(() => {
-    loadTables();
-  }, [projectId]);
-
-  useEffect(() => {
-    if (selectedTable) {
-      loadTableData(selectedTable);
-    }
-  }, [selectedTable]);
-
-  const loadTables = async () => {
+  const loadTables = useCallback(async () => {
     try {
       const data = await databaseApi.getTables(projectId);
       setTables(data);
@@ -39,9 +29,9 @@ export default function DataEditor({ projectId }: DataEditorProps) {
     } catch (err: any) {
       toast.error('Failed to load tables');
     }
-  };
+  }, [projectId, selectedTable]);
 
-  const loadTableData = async (tableName: string) => {
+  const loadTableData = useCallback(async (tableName: string) => {
     setLoading(true);
     try {
       const result = await databaseApi.executeQuery(
@@ -59,7 +49,17 @@ export default function DataEditor({ projectId }: DataEditorProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [projectId]);
+
+  useEffect(() => {
+    loadTables();
+  }, [loadTables]);
+
+  useEffect(() => {
+    if (selectedTable) {
+      loadTableData(selectedTable);
+    }
+  }, [loadTableData, selectedTable]);
 
   const handleEditRow = (index: number) => {
     setEditingRow(index);

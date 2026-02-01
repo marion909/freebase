@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  HttpCode,
   UseGuards,
   Request,
 } from '@nestjs/common';
@@ -60,8 +61,9 @@ export class ProjectsController {
   }
 
   @Delete(':id')
+  @HttpCode(204)
   @ApiOperation({ summary: 'Delete project' })
-  @ApiResponse({ status: 200, description: 'Project deleted successfully' })
+  @ApiResponse({ status: 204, description: 'Project deleted successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Project not found' })
   remove(@Request() req: any, @Param('id') id: string) {

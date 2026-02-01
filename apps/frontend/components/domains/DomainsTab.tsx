@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import domainsApi, { Domain, DnsInstructions } from '@/lib/domainsApi';
 import { CheckCircle, Clock, AlertCircle, Copy, Plus, Trash2, RefreshCw } from 'lucide-react';
 
@@ -20,11 +20,7 @@ export default function DomainsTab({ projectId, projectSlug }: DomainsTabProps) 
 
   const standardDomain = `${projectSlug}.Neuhauser.network`;
 
-  useEffect(() => {
-    loadDomains();
-  }, [projectId]);
-
-  const loadDomains = async () => {
+  const loadDomains = useCallback(async () => {
     try {
       setLoading(true);
       const data = await domainsApi.listDomains(projectId);
@@ -34,7 +30,11 @@ export default function DomainsTab({ projectId, projectSlug }: DomainsTabProps) 
     } finally {
       setLoading(false);
     }
-  };
+  }, [projectId]);
+
+  useEffect(() => {
+    loadDomains();
+  }, [loadDomains]);
 
   const handleAddDomain = async () => {
     if (!newDomain.trim()) {

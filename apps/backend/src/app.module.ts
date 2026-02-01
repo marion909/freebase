@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, Logger } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
@@ -6,6 +6,7 @@ import { ProjectsModule } from './projects/projects.module';
 import { DatabaseModule } from './database/database.module';
 import { DomainsModule } from './domains/domains.module';
 import { MonitoringModule } from './monitoring/monitoring.module';
+import { AppLoggerService } from './common/logger.service';
 
 @Module({
   imports: [
@@ -17,14 +18,17 @@ import { MonitoringModule } from './monitoring/monitoring.module';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
+        const logger = new Logger('TypeORM');
         const password = configService.get<string>('DB_PASSWORD');
-        console.log('DB Config:', {
-          host: configService.get('DB_HOST'),
-          port: configService.get('DB_PORT'),
-          username: configService.get('DB_USER'),
-          password: password ? '***SET***' : 'UNDEFINED',
-          database: configService.get('DB_NAME'),
-        });
+        logger.log(
+          `DB Config: ${JSON.stringify({
+            host: configService.get('DB_HOST'),
+            port: configService.get('DB_PORT'),
+            username: configService.get('DB_USER'),
+            password: password ? '***SET***' : 'UNDEFINED',
+            database: configService.get('DB_NAME'),
+          })}`,
+        );
         return {
           type: 'postgres' as const,
           host: configService.get<string>('DB_HOST'),
@@ -44,5 +48,6 @@ import { MonitoringModule } from './monitoring/monitoring.module';
     DomainsModule,
     MonitoringModule,
   ],
+  providers: [AppLoggerService],
 })
 export class AppModule {}

@@ -2,9 +2,12 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { AppLoggerService } from './common/logger.service';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  const logger = app.get(AppLoggerService);
+  app.useLogger(logger);
 
   // Enable CORS
   app.enableCors({
@@ -38,9 +41,12 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3001;
   await app.listen(port);
-  console.log(`🚀 Freebase API running on http://localhost:${port}`);
+  logger.log(`🚀 Freebase API running on http://localhost:${port}`, 'Bootstrap');
   if (process.env.ENABLE_SWAGGER === 'true') {
-    console.log(`📚 Swagger docs available at http://localhost:${port}/api/docs`);
+    logger.log(
+      `📚 Swagger docs available at http://localhost:${port}/api/docs`,
+      'Bootstrap',
+    );
   }
 }
 bootstrap();

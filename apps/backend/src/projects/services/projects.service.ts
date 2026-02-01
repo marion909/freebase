@@ -2,9 +2,11 @@ import {
   Injectable,
   NotFoundException,
   Logger,
+  BadRequestException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { Project } from '../entities/project.entity';
 import { CreateProjectDto, UpdateProjectDto, ProjectResponseDto } from '../dto/project.dto';
 import { DockerService } from './docker.service';
@@ -20,6 +22,7 @@ export class ProjectsService {
     private readonly projectRepository: Repository<Project>,
     private readonly dockerService: DockerService,
     private readonly encryptionService: EncryptionService,
+    private readonly dataSource: DataSource,
   ) {}
 
   /**
@@ -167,23 +170,93 @@ export class ProjectsService {
       throw new NotFoundException('Project not found');
     }
 
-    // Remove Docker container if exists
+    // Stop and remove Docker container + network
     if (project.dockerContainerId && project.dockerNetworkName) {
-      try {
-        await this.dockerService.removeProjectContainer(
-          project.dockerContainerId,
-          project.dockerNetworkName,
-        );
-        this.logger.log(`Removed container for project ${project.slug}`);
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        this.logger.error(`Failed to remove container: ${errorMessage}`);
-        // Continue with project deletion even if container removal fails
-      }
+      await this.withRetry(
+        async () =>
+          this.dockerService.removeProjectContainer(
+            project.dockerContainerId,
+            project.dockerNetworkName,
+          ),
+        `remove container for project ${project.slug}`,
+      );
+      this.logger.log(`Removed container for project ${project.slug}`);
+    }
+
+    // Drop project database
+    if (project.databaseName) {
+      await this.dropProjectDatabase(project.databaseName);
+      this.logger.log(`Dropped database for project ${project.slug}`);
     }
 
     await this.projectRepository.remove(project);
     this.logger.log(`Project ${project.slug} deleted`);
+  }
+
+  /**
+   * Drop project database safely
+   */
+  private async dropProjectDatabase(databaseName: string): Promise<void> {
+    this.ensureSafeIdentifier(databaseName);
+
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+
+    try {
+      await queryRunner.query(
+        `SELECT pg_terminate_backend(pid)
+         FROM pg_stat_activity
+         WHERE datname = $1 AND pid <> pg_backend_pid()`,
+        [databaseName],
+      );
+
+      await queryRunner.query(`DROP DATABASE IF EXISTS "${databaseName}"`);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Failed to drop database ${databaseName}: ${errorMessage}`);
+      throw new InternalServerErrorException('Failed to drop project database');
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  /**
+   * Ensure database identifier is safe to use in SQL
+   */
+  private ensureSafeIdentifier(identifier: string): void {
+    if (!/^[a-zA-Z0-9_]+$/.test(identifier)) {
+      throw new BadRequestException('Invalid database identifier');
+    }
+  }
+
+  /**
+   * Retry helper with exponential backoff
+   */
+  private async withRetry<T>(
+    operation: () => Promise<T>,
+    label: string,
+    maxAttempts = 3,
+  ): Promise<T> {
+    let attempt = 0;
+    let lastError: unknown;
+
+    while (attempt < maxAttempts) {
+      try {
+        return await operation();
+      } catch (error) {
+        lastError = error;
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        this.logger.error(`Attempt ${attempt + 1} failed to ${label}: ${errorMessage}`);
+
+        attempt += 1;
+        if (attempt < maxAttempts) {
+          const delayMs = 500 * Math.pow(2, attempt - 1);
+          await new Promise((resolve) => setTimeout(resolve, delayMs));
+        }
+      }
+    }
+
+    throw lastError instanceof Error ? lastError : new Error(`Failed to ${label}`);
   }
 
   /**

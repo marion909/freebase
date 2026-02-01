@@ -383,10 +383,12 @@ export class DatabaseService {
     },
   ): Promise<void> {
     try {
+      const sanitizedQuery = this.sanitizeQueryForLogging(queryText);
+
       await this.queryLogRepository.save({
         projectId,
         executedByUserId: userId,
-        queryText,
+        queryText: sanitizedQuery,
         queryHash,
         success: options.success,
         durationMs: options.durationMs,
@@ -427,5 +429,15 @@ export class DatabaseService {
    */
   async onModuleDestroy() {
     await this.closeAllPools();
+  }
+
+  /**
+   * Sanitize queries for logging (remove literals)
+   */
+  private sanitizeQueryForLogging(query: string): string {
+    return query
+      .replace(/\$\$[\s\S]*?\$\$/g, '$$?$$')
+      .replace(/'(?:''|[^'])*'/g, "'?'")
+      .replace(/\b\d+\b/g, '?');
   }
 }

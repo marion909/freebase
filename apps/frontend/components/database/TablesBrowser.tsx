@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Table, ChevronDown, ChevronRight, Database, Key, Link as LinkIcon } from 'lucide-react';
 import { databaseApi, TableMetadata } from '@/lib/databaseApi';
 import toast from 'react-hot-toast';
@@ -14,11 +14,7 @@ export default function TablesBrowser({ projectId }: TablesBrowserProps) {
   const [expandedTables, setExpandedTables] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadTables();
-  }, [projectId]);
-
-  const loadTables = async () => {
+  const loadTables = useCallback(async () => {
     setLoading(true);
     try {
       const data = await databaseApi.getTables(projectId);
@@ -29,7 +25,11 @@ export default function TablesBrowser({ projectId }: TablesBrowserProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [projectId]);
+
+  useEffect(() => {
+    loadTables();
+  }, [loadTables]);
 
   const toggleTable = (tableName: string) => {
     const newExpanded = new Set(expandedTables);

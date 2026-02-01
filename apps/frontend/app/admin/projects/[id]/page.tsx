@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Database, Settings, Globe, HardDrive, AlertCircle } from 'lucide-react';
 import DatabaseDashboard from '@/components/database/DatabaseDashboard';
@@ -47,13 +47,12 @@ export default function ProjectDetailPage() {
   const [usage, setUsage] = useState<ResourceUsage | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('database');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState('');
+  const [deleteCooldown, setDeleteCooldown] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  useEffect(() => {
-    loadProject();
-    loadUsage();
-  }, [projectId]);
-
-  const loadProject = async () => {
+  const loadProject = useCallback(async () => {
     try {
       const token = localStorage.getItem('auth_token');
       const response = await fetch(`http://localhost:3001/api/v1/projects/${projectId}`, {
@@ -74,9 +73,9 @@ export default function ProjectDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [projectId, router]);
 
-  const loadUsage = async () => {
+  const loadUsage = useCallback(async () => {
     try {
       const token = localStorage.getItem('auth_token');
       const response = await fetch(`http://localhost:3001/api/v1/projects/${projectId}/usage`, {
@@ -92,7 +91,12 @@ export default function ProjectDetailPage() {
     } catch (err: any) {
       console.error('Failed to load usage:', err);
     }
-  };
+  }, [projectId]);
+
+  useEffect(() => {
+    loadProject();
+    loadUsage();
+  }, [loadProject, loadUsage]);
 
   const getStorageColor = (warningLevel: string) => {
     if (warningLevel === 'critical') return 'bg-red-500';
@@ -104,6 +108,51 @@ export default function ProjectDetailPage() {
     if (warningLevel === 'critical') return 'text-red-700';
     if (warningLevel === 'warning') return 'text-yellow-700';
     return 'text-green-700';
+  };
+
+  const openDeleteModal = () => {
+    setDeleteConfirm('');
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteProject = async () => {
+    if (!project || deleteCooldown || isDeleting) return;
+    if (deleteConfirm !== project.name) {
+      toast.error('Project name does not match');
+      return;
+    }
+
+    setIsDeleting(true);
+    setDeleteCooldown(true);
+
+    setTimeout(() => {
+      setDeleteCooldown(false);
+    }, 3000);
+
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(
+        `http://localhost:3001/api/v1/projects/${projectId}`,
+        {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to delete project');
+      }
+
+      toast.success('Project deleted');
+      router.push('/admin');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to delete project');
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteModal(false);
+    }
   };
 
   if (loading) {
@@ -325,6 +374,20 @@ export default function ProjectDetailPage() {
                 </div>
               </div>
             </div>
+
+            {/* Delete Project */}
+            <div className="bg-white rounded-lg shadow-sm border border-red-200 p-6">
+              <h2 className="text-lg font-semibold text-red-700 mb-2">Delete Project</h2>
+              <p className="text-sm text-gray-600 mb-4">
+                This action permanently deletes the project, its database, container, and network.
+              </p>
+              <button
+                onClick={openDeleteModal}
+                className="px-4 py-2 rounded-md text-sm font-medium bg-red-600 text-white hover:bg-red-700 transition-colors"
+              >
+                Delete Project
+              </button>
+            </div>
           </div>
         )}
 
@@ -332,6 +395,47 @@ export default function ProjectDetailPage() {
           <DomainsTab projectId={projectId} projectSlug={project.slug} />
         )}
       </div>
+
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Confirm Deletion</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Type the project name to confirm deletion. This cannot be undone.
+            </p>
+            <input
+              type="text"
+              value={deleteConfirm}
+              onChange={(e) => setDeleteConfirm(e.target.value)}
+              placeholder={project.name}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm mb-4"
+            />
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="px-4 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteProject}
+                disabled={
+                  isDeleting ||
+                  deleteCooldown ||
+                  deleteConfirm !== project.name
+                }
+                className={`px-4 py-2 rounded-md text-sm font-medium text-white transition-colors ${
+                  isDeleting || deleteCooldown || deleteConfirm !== project.name
+                    ? 'bg-red-300 cursor-not-allowed'
+                    : 'bg-red-600 hover:bg-red-700'
+                }`}
+              >
+                {isDeleting ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
