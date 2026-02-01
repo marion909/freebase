@@ -10,11 +10,9 @@ WORKDIR /app
 # ============ Dependencies Stage ============
 FROM base AS dependencies
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
-RUN mkdir -p apps/backend apps/frontend packages/shared packages/types
+RUN mkdir -p apps/backend apps/frontend
 COPY apps/backend/package.json ./apps/backend/
 COPY apps/frontend/package.json ./apps/frontend/
-COPY packages/shared/package.json ./packages/shared/
-COPY packages/types/package.json ./packages/types/
 RUN pnpm install --frozen-lockfile
 
 # ============ Development Stage ============
