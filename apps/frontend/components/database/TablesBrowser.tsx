@@ -138,10 +138,14 @@ export default function TablesBrowser({ projectId }: TablesBrowserProps) {
                         >
                           <div className="flex items-center gap-2 flex-1 min-w-0">
                             {column.isPrimaryKey && (
-                              <Key className="w-4 h-4 text-yellow-500 flex-shrink-0" title="Primary Key" />
+                              <div title="Primary Key">
+                                <Key className="w-4 h-4 text-yellow-500 flex-shrink-0" />
+                              </div>
                             )}
                             {column.isForeignKey && (
-                              <LinkIcon className="w-4 h-4 text-blue-500 flex-shrink-0" title="Foreign Key" />
+                              <div title="Foreign Key">
+                                <LinkIcon className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                              </div>
                             )}
                             <span className="font-mono text-sm text-gray-900 font-medium">
                               {column.columnName}
