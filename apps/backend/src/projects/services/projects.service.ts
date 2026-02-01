@@ -175,8 +175,8 @@ export class ProjectsService {
       await this.withRetry(
         async () =>
           this.dockerService.removeProjectContainer(
-            project.dockerContainerId,
-            project.dockerNetworkName,
+            project.dockerContainerId!,
+            project.dockerNetworkName!,
           ),
         `remove container for project ${project.slug}`,
       );
