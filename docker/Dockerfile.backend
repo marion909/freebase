@@ -15,14 +15,14 @@ RUN pnpm install --no-optional
 
 # ============ Development Stage ============
 FROM dependencies AS development
-RUN turbo build --filter=backend
+RUN cd apps/backend && npm run build
 RUN turbo run db:generate --filter=backend || true
 EXPOSE 3001
 CMD ["npm", "run", "start:dev", "--filter=backend"]
 
 # ============ Production Build Stage ============
 FROM dependencies AS production-build
-RUN turbo build --filter=backend
+RUN cd apps/backend && npm run build
 
 # ============ Production Runtime Stage ============
 FROM base AS production

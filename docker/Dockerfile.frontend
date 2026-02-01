@@ -19,7 +19,7 @@ CMD ["npm", "run", "dev", "--filter=frontend"]
 
 # ============ Production Build Stage ============
 FROM dependencies AS production-build
-RUN turbo build --filter=frontend
+RUN cd apps/frontend && npm run build
 
 # ============ Production Runtime Stage ============
 FROM node:20-alpine AS production
