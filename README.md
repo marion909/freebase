@@ -163,6 +163,9 @@ chmod +x infrastructure/setup.sh
 nano .env.production
 # Add all production secrets
 
+# Make Docker Compose load production env by default
+cp .env.production .env
+
 # Start services
 docker-compose -f docker-compose.production.yml up -d
 ```

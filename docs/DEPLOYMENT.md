@@ -24,7 +24,7 @@ Run the setup script:
 
 ```bash
 cd /opt
-git clone https://github.com/yourusername/freebase.git
+git clone https://github.com/marion909/freebase.git
 cd freebase
 chmod +x infrastructure/setup.sh
 ./infrastructure/setup.sh
