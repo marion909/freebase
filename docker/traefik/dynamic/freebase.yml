@@ -1,7 +1,7 @@
 http:
   routers:
     frontend:
-      rule: Host(`neuhauser.network`) && !PathPrefix(`/api`)
+      rule: (Host(`neuhauser.network`) || Host(`www.neuhauser.network`)) && !PathPrefix(`/api`)
       entryPoints:
         - web
         - websecure
@@ -9,7 +9,7 @@ http:
       tls:
         certResolver: letsencrypt
     backend:
-      rule: Host(`api.neuhauser.network`) || (Host(`neuhauser.network`) && PathPrefix(`/api`))
+      rule: Host(`api.neuhauser.network`) || (Host(`neuhauser.network`) && PathPrefix(`/api`)) || (Host(`www.neuhauser.network`) && PathPrefix(`/api`))
       entryPoints:
         - web
         - websecure
