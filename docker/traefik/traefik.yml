@@ -25,15 +25,6 @@ providers:
     directory: /etc/traefik/dynamic
     watch: true
 
-# Certificate Resolvers
-certificatesResolvers:
-  letsencrypt:
-    acme:
-      email: ${ACME_EMAIL:-noreply@Neuhauser.network}
-      storage: /letsencrypt/acme.json
-      httpChallenge:
-        entryPoint: web
-
 # Logging
 log:
   level: DEBUG
