@@ -35,14 +35,8 @@ services:
       - .env.production
     command:
       - '--api.dashboard=false'
-      - '--providers.docker=true'
-      - '--providers.docker.exposedbydefault=false'
       - '--entrypoints.web.address=:80'
       - '--entrypoints.websecure.address=:443'
-      - '--certificatesResolvers.letsencrypt.acme.httpChallenge=true'
-      - '--certificatesResolvers.letsencrypt.acme.httpChallenge.entryPoint=web'
-      - '--certificatesResolvers.letsencrypt.acme.email=${ACME_EMAIL}'
-      - '--certificatesResolvers.letsencrypt.acme.storage=/letsencrypt/acme.json'
       - '--log.level=WARN'
       - '--accessLog=true'
     ports:

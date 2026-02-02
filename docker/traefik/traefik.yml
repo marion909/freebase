@@ -19,6 +19,15 @@ entryPoints:
   websecure:
     address: ':443'
 
+# Certificate Resolvers
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: noreply@Neuhauser.network
+      storage: /letsencrypt/acme.json
+      httpChallenge:
+        entryPoint: web
+
 # Providers
 providers:
   file:

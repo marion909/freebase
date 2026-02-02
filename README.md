@@ -149,6 +149,7 @@ pnpm db:seed
 ### Production Setup (Hetzner)
 
 Note: The backend and frontend production images bundle runtime dependencies during the Docker build (see docker/Dockerfile.backend and docker/Dockerfile.frontend).
+Traefik ACME email is configured in docker/traefik/traefik.yml.
 
 ```bash
 # SSH into your server
