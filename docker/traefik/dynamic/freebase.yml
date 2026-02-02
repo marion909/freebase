@@ -1,0 +1,28 @@
+http:
+  routers:
+    frontend:
+      rule: Host(`neuhauser.network`) && !PathPrefix(`/api`)
+      entryPoints:
+        - web
+        - websecure
+      service: frontend
+      tls:
+        certResolver: letsencrypt
+    backend:
+      rule: Host(`api.neuhauser.network`) || (Host(`neuhauser.network`) && PathPrefix(`/api`))
+      entryPoints:
+        - web
+        - websecure
+      service: backend
+      tls:
+        certResolver: letsencrypt
+
+  services:
+    frontend:
+      loadBalancer:
+        servers:
+          - url: http://frontend:3000
+    backend:
+      loadBalancer:
+        servers:
+          - url: http://backend:3001

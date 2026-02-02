@@ -33,8 +33,6 @@ services:
     image: traefik:v3.0
     env_file:
       - .env.production
-    environment:
-      DOCKER_API_VERSION: "1.53"
     command:
       - '--api.dashboard=false'
       - '--providers.docker=true'

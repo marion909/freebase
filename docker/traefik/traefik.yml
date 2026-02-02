@@ -19,12 +19,8 @@ entryPoints:
   websecure:
     address: ':443'
 
-# Docker Provider
+# Providers
 providers:
-  docker:
-    endpoint: unix:///var/run/docker.sock
-    exposedByDefault: false
-    network: freebase-core
   file:
     directory: /etc/traefik/dynamic
     watch: true
