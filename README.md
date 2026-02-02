@@ -186,6 +186,7 @@ See [.env.example](./.env.example) for all available configuration options.
 - `LOG_ALERT_RECIPIENTS` - Comma-separated alert recipients
 - `LOG_DIR` - Log directory for rotated files
 - `HETZNER_BACKUP_*` - Backup space credentials
+- `DOCKER_API_VERSION` - Docker API version for Traefik (set to server API version, e.g., `1.53`)
 
 ## Contributing
 
