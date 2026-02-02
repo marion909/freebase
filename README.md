@@ -148,7 +148,7 @@ pnpm db:seed
 
 ### Production Setup (Hetzner)
 
-Note: The backend production image bundles runtime dependencies during the Docker build (see docker/Dockerfile.backend).
+Note: The backend and frontend production images bundle runtime dependencies during the Docker build (see docker/Dockerfile.backend and docker/Dockerfile.frontend).
 
 ```bash
 # SSH into your server

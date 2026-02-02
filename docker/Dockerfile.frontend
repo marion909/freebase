@@ -20,18 +20,14 @@ CMD ["pnpm", "--filter", "@freebase/frontend", "dev"]
 # ============ Production Build Stage ============
 FROM dependencies AS production-build
 RUN cd apps/frontend && pnpm run build
+RUN pnpm --filter @freebase/frontend... deploy --prod /app/deploy/frontend
 
 # ============ Production Runtime Stage ============
 FROM node:20-alpine AS production
 ENV NODE_ENV=production
-RUN npm install -g pnpm
 WORKDIR /app
-COPY --from=production-build /app/apps/frontend/.next ./apps/frontend/.next
-COPY --from=production-build /app/apps/frontend/package.json ./apps/frontend/
-COPY --from=production-build /app/node_modules ./node_modules
-COPY --from=production-build /app/package.json ./
-COPY --from=production-build /app/pnpm-workspace.yaml ./
+COPY --from=production-build /app/deploy/frontend ./
 EXPOSE 3000
 HEALTHCHECK --interval=10s --timeout=5s --retries=5 \
   CMD node -e "require('http').get('http://localhost:3000', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
-CMD ["pnpm", "--filter", "@freebase/frontend", "start"]
+CMD ["node", "node_modules/next/dist/bin/next", "start"]
